@@ -29,6 +29,8 @@ export class TenantController {
   async create(@Body() body: any): Promise<Tenant> {
     const tenant = await this.service.create(body);
 
+    console.log('🆕 Tenant criado:', tenant.id);
+
     if (body.email_admin && body.senhaAdmin) {
       await this.usersService.createAdmin({
         email: body.email_admin,

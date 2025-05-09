@@ -4,7 +4,7 @@ const api = axios.create({
   baseURL: 'http://localhost:3000',
 });
 
-// ✅ Interceptor de requisição: insere o token correto
+// ✅ Interceptor: insere o token correto
 api.interceptors.request.use((config) => {
   const superAdminToken = localStorage.getItem('token');
   const adminToken = localStorage.getItem('admin_token');
@@ -19,7 +19,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ❌ Interceptor de resposta: trata erros globais
+// ❌ Interceptor: trata erros globais de auth
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -28,9 +28,7 @@ api.interceptors.response.use(
     if (code === 401 || code === 403) {
       alert('❌ Sessão expirada ou acesso não autorizado.');
 
-      // Redireciona para a rota de login apropriada
       const pathname = window.location.pathname;
-
       if (pathname.startsWith('/admin')) {
         window.location.href = '/admin';
       } else if (pathname.startsWith('/operador')) {

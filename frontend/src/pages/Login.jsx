@@ -2,22 +2,48 @@ import { useState } from 'react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
+import { useOperatorAuth } from '../contexts/OperatorAuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [erro, setErro] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+
+  const { login: superLogin } = useAuth();
+  const { login: adminLogin } = useAdminAuth();
+  const { login: operatorLogin } = useOperatorAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { email, password });
-      login(res.data.access_token);
-      navigate('/dashboard');
-    } catch {
-      setErro('Email ou senha inválidos');
+      const token = res.data.access_token;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      switch (payload.role?.toLowerCase()) {
+        case 'superadmin':
+          superLogin(token);
+          navigate('/dashboard');
+          break;
+        case 'admin':
+          adminLogin(token, payload.tenantId);
+          navigate('/admin/dashboard');
+          break;
+        case 'operador':
+          operatorLogin(token, payload.tenantId);
+          navigate('/operador/dashboard');
+          break;
+        default:
+          throw new Error('Perfil desconhecido.');
+      }
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        'Erro ao tentar autenticar.';
+      setErro(`❌ ${msg}`);
     }
   };
 
@@ -43,7 +69,7 @@ export default function Login() {
           required
         />
 
-        {erro && <p className="text-red-500 mb-2">{erro}</p>}
+        {erro && <p className="text-red-500 mb-2 text-sm">{erro}</p>}
 
         <button
           type="submit"

@@ -14,12 +14,14 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { MessagesModule } from './messages/messages.module';
 import { ChatModule } from './chat/chat.module';
 import { SetupModule } from './setup/setup.module';
+import { AdminModule } from './admin/admin.module';
 
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { TenantGuard } from './auth/tenant.guard';
 import { TokenGuard } from './auth/token.guard';
 import { APP_GUARD } from '@nestjs/core';
+
 
 @Module({
   imports: [
@@ -41,6 +43,7 @@ import { APP_GUARD } from '@nestjs/core';
     ChannelsModule,
     WhatsappModule,
     ConversationsModule,
+     AdminModule, // ✅ novo módulo incluído
     MessagesModule,
     ChatModule,
     SetupModule,

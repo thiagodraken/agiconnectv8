@@ -1,27 +1,43 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const OperatorAuthContext = createContext();
 
 export function OperatorAuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('operator_token'));
-  const [operatorId, setOperatorId] = useState(localStorage.getItem('operator_id'));
+  const [tenantId, setTenantId] = useState(localStorage.getItem('operator_tenant'));
 
-  const login = (token, operatorId) => {
-    localStorage.setItem('operator_token', token);
-    localStorage.setItem('operator_id', operatorId);
-    setToken(token);
-    setOperatorId(operatorId);
+  useEffect(() => {
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role?.toLowerCase() !== 'operador') {
+          logout();
+        } else {
+          setTenantId(payload.tenantId);
+          localStorage.setItem('operator_tenant', payload.tenantId);
+        }
+      } catch (err) {
+        logout(); // Token inválido ou expirado
+      }
+    }
+  }, [token]);
+
+  const login = (jwtToken, tenantIdFromPayload) => {
+    localStorage.setItem('operator_token', jwtToken);
+    localStorage.setItem('operator_tenant', tenantIdFromPayload);
+    setToken(jwtToken);
+    setTenantId(tenantIdFromPayload);
   };
 
   const logout = () => {
     localStorage.removeItem('operator_token');
-    localStorage.removeItem('operator_id');
+    localStorage.removeItem('operator_tenant');
     setToken(null);
-    setOperatorId(null);
+    setTenantId(null);
   };
 
   return (
-    <OperatorAuthContext.Provider value={{ token, operatorId, login, logout }}>
+    <OperatorAuthContext.Provider value={{ token, tenantId, login, logout }}>
       {children}
     </OperatorAuthContext.Provider>
   );

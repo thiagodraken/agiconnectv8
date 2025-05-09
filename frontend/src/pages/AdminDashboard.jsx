@@ -1,20 +1,42 @@
-import { useAdminAuth } from '../contexts/AdminAuthContext';
+import { useEffect, useState } from 'react';
+import api from '../services/api';
 
 export default function AdminDashboard() {
-  const { logout, tenantId } = useAdminAuth();
+  const [info, setInfo] = useState(null);
+  const [erro, setErro] = useState('');
+
+  useEffect(() => {
+    const carregar = async () => {
+      try {
+        const res = await api.get('/admin/dashboard');
+        setInfo(res.data);
+      } catch (err) {
+        setErro('Erro ao carregar informações do painel do cliente.');
+      }
+    };
+
+    carregar();
+  }, []);
+
+  if (erro) {
+    return <p className="text-red-600 text-center mt-10">{erro}</p>;
+  }
+
+  if (!info) {
+    return <p className="text-center mt-10">Carregando painel do cliente...</p>;
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <header className="bg-blue-700 text-white p-4 flex justify-between items-center">
-        <h1 className="text-lg font-bold">Painel do Cliente</h1>
-        <button onClick={logout} className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600">
-          Sair
-        </button>
-      </header>
-      <main className="p-6">
-        <p className="text-gray-800">Bem-vindo, Tenant ID: <strong>{tenantId}</strong></p>
-        <p className="text-sm mt-2">Aqui virá o menu lateral com os recursos estilo Zpro.</p>
-      </main>
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Painel do Cliente</h1>
+      <div className="bg-white rounded shadow p-4 space-y-2 max-w-md">
+        <p><strong>Email:</strong> {info.user.email}</p>
+        <p><strong>ID do Tenant:</strong> {info.user.tenantId}</p>
+        <p><strong>Perfil:</strong> {info.user.role}</p>
+        <p className="text-sm text-gray-500">
+          Essa conta está vinculada ao seu ambiente de cliente. Você pode configurar canais, operadores e WhatsApp API.
+        </p>
+      </div>
     </div>
   );
 }

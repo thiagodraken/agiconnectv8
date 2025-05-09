@@ -14,12 +14,23 @@ export default function OperatorLogin() {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { email, password });
-      const payload = JSON.parse(atob(res.data.access_token.split('.')[1]));
-      if (payload.role !== 'operador') throw new Error();
-      login(res.data.access_token, payload.sub);
+      const token = res.data.access_token;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      console.log('🎟️ Payload do operador:', payload);
+
+      if (payload.role?.toLowerCase() !== 'operador') {
+        throw new Error('Este login não pertence a um operador.');
+      }
+
+      login(token, payload.tenantId);
       navigate('/operador/dashboard');
-    } catch {
-      setErro('Credenciais inválidas para Operador');
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err.message ||
+        'Erro ao tentar autenticar operador.';
+      setErro(`❌ ${msg}`);
     }
   };
 
@@ -45,7 +56,7 @@ export default function OperatorLogin() {
           required
         />
 
-        {erro && <p className="text-red-500 mb-2">{erro}</p>}
+        {erro && <p className="text-red-500 mb-2 text-sm">{erro}</p>}
 
         <button
           type="submit"
