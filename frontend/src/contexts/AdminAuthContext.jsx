@@ -1,4 +1,6 @@
+// 📁 frontend/src/contexts/AdminAuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
+import { clearAllAuthTokens } from '../utils/authCleaner';
 
 const AdminAuthContext = createContext();
 
@@ -10,45 +12,37 @@ export function AdminAuthProvider({ children }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('admin_token');
     const storedTenant = localStorage.getItem('admin_tenant');
-
     if (storedToken) {
       try {
         const payload = JSON.parse(atob(storedToken.split('.')[1]));
-        console.log('✅ payload carregado:', payload);
-
         if (payload.role?.toLowerCase() !== 'admin') {
           logout();
         } else {
           setToken(storedToken);
           setTenantId(payload.tenantId || storedTenant);
         }
-      } catch (err) {
+      } catch {
         logout();
       }
     }
-
     setLoading(false);
   }, []);
 
-  const login = (jwtToken, tenantIdFromPayload) => {
-    localStorage.setItem('admin_token', jwtToken);
+  const login = (jwt, tenantIdFromPayload) => {
+    clearAllAuthTokens(['admin_token', 'admin_tenant']);
+    localStorage.setItem('admin_token', jwt);
     localStorage.setItem('admin_tenant', tenantIdFromPayload);
-    setToken(jwtToken);
+    setToken(jwt);
     setTenantId(tenantIdFromPayload);
   };
 
   const logout = () => {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_tenant');
+    clearAllAuthTokens();
     setToken(null);
     setTenantId(null);
   };
 
-  return (
-    <AdminAuthContext.Provider value={{ token, login, logout, tenantId, loading }}>
-      {children}
-    </AdminAuthContext.Provider>
-  );
+  return <AdminAuthContext.Provider value={{ token, tenantId, login, logout, loading }}>{children}</AdminAuthContext.Provider>;
 }
 
 export function useAdminAuth() {

@@ -1,6 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+// 📁 backend/src/tenant/tenant.entity.ts
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
-@Entity()
+@Entity('tenants')
 export class Tenant {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,11 +30,15 @@ export class Tenant {
   @Column('timestamp')
   expiracao: Date;
 
-  @Column({ type: 'enum', enum: ['ativo', 'bloqueado', 'expirado'], default: 'ativo' })
+  @Column({
+    type: 'enum',
+    enum: ['ativo', 'bloqueado', 'expirado'],
+    default: 'ativo',
+  })
   status: 'ativo' | 'bloqueado' | 'expirado';
 
-  @Column({ nullable: true })
-  motivo_bloqueio: string;
+@Column({ type: 'text', nullable: true })
+motivo_bloqueio: string | null;
 
   @CreateDateColumn()
   criado_em: Date;

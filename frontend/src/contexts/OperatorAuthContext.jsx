@@ -1,4 +1,6 @@
+// 📁 frontend/src/contexts/OperatorAuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
+import { clearAllAuthTokens } from '../utils/authCleaner';
 
 const OperatorAuthContext = createContext();
 
@@ -16,31 +18,27 @@ export function OperatorAuthProvider({ children }) {
           setTenantId(payload.tenantId);
           localStorage.setItem('operator_tenant', payload.tenantId);
         }
-      } catch (err) {
-        logout(); // Token inválido ou expirado
+      } catch {
+        logout();
       }
     }
   }, [token]);
 
-  const login = (jwtToken, tenantIdFromPayload) => {
-    localStorage.setItem('operator_token', jwtToken);
+  const login = (jwt, tenantIdFromPayload) => {
+    clearAllAuthTokens(['operator_token', 'operator_tenant']);
+    localStorage.setItem('operator_token', jwt);
     localStorage.setItem('operator_tenant', tenantIdFromPayload);
-    setToken(jwtToken);
+    setToken(jwt);
     setTenantId(tenantIdFromPayload);
   };
 
   const logout = () => {
-    localStorage.removeItem('operator_token');
-    localStorage.removeItem('operator_tenant');
+    clearAllAuthTokens();
     setToken(null);
     setTenantId(null);
   };
 
-  return (
-    <OperatorAuthContext.Provider value={{ token, tenantId, login, logout }}>
-      {children}
-    </OperatorAuthContext.Provider>
-  );
+  return <OperatorAuthContext.Provider value={{ token, tenantId, login, logout }}>{children}</OperatorAuthContext.Provider>;
 }
 
 export function useOperatorAuth() {
