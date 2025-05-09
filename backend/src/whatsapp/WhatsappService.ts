@@ -1,4 +1,4 @@
-// 📁 backend/src/services/WhatsappService.ts
+// 📁 backend/src/whatsapp/WhatsappService.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -35,7 +35,6 @@ export class WhatsappService {
     return res.json();
   }
 
-  // Stubs para erros em whatsapp.controller.ts
   async salvarOuAtualizarConfig(data: any) {
     return { ok: true, config: data };
   }
@@ -45,6 +44,6 @@ export class WhatsappService {
   }
 
   async buscarTenantPorPhoneId(phoneNumberId: string) {
-    return { tenantId: 'mock-tenant', phoneId: phoneNumberId };
+    return { tenantId: 'mock-tenant-id', phoneId: phoneNumberId };
   }
 }
