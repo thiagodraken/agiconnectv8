@@ -16,7 +16,7 @@ export default function AdminCanais() {
       const res = await api.get(`/channels/tenant/${tenantId}`);
       setCanais(res.data);
     } catch (err) {
-      console.error('Erro ao carregar canais:', err);
+      alert('Erro ao carregar canais');
     }
   };
 
@@ -30,7 +30,8 @@ export default function AdminCanais() {
       setForm({ nome: '', tipo: '', ativo: true });
       carregar();
     } catch (err) {
-      console.error('Erro ao criar canal:', err);
+      const msg = err.response?.data?.message || 'Erro ao criar canal';
+      alert(`❌ ${msg}`);
     }
   };
 
@@ -40,13 +41,13 @@ export default function AdminCanais() {
       await api.delete(`/channels/${id}`);
       carregar();
     } catch (err) {
-      console.error('Erro ao excluir:', err);
+      alert('Erro ao excluir canal');
     }
   };
 
   useEffect(() => {
-    carregar();
-  }, []);
+    if (tenantId) carregar();
+  }, [tenantId]);
 
   return (
     <div>

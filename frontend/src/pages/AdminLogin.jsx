@@ -14,16 +14,16 @@ export default function AdminLogin() {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { email, password });
-      if (res.data?.access_token) {
-        const payload = JSON.parse(atob(res.data.access_token.split('.')[1]));
-        if (payload.role !== 'admin') throw new Error();
-        login(res.data.access_token, payload.tenantId);
-        navigate('/admin/dashboard');
-      } else {
-        throw new Error();
-      }
+
+      const token = res.data.access_token;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      if (payload.role !== 'admin') throw new Error();
+
+      login(token, payload.tenantId);
+      navigate('/admin/dashboard');
     } catch {
-      setErro('Credenciais inválidas para Admin do Cliente');
+      setErro('Email ou senha inválidos para Admin do Cliente');
     }
   };
 

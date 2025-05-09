@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Operator } from './operator.entity';
@@ -21,7 +21,17 @@ export class OperatorsService {
     });
   }
 
-  create(data: any) {
+  async create(data: any) {
+    const count = await this.repo.count({
+      where: { tenant: { id: data.tenant.id } },
+    });
+
+    const limite = data.tenant.operadores_maximos;
+
+    if (count >= limite) {
+      throw new BadRequestException('Limite de operadores atingido para este cliente.');
+    }
+
     const op = this.repo.create(data);
     return this.repo.save(op);
   }

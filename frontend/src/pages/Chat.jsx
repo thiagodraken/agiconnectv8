@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { io } from 'socket.io-client';
 import api from '../services/api';
-
-const socket = io('http://localhost:3000');
+import { useSocket } from '../hooks/useSocket';
 
 export default function Chat() {
-  const { id } = useParams(); // ID da conversa
+  const { id } = useParams(); // conversa ID
   const [mensagens, setMensagens] = useState([]);
   const [texto, setTexto] = useState('');
   const [conversaInfo, setConversaInfo] = useState(null);
   const chatRef = useRef(null);
+  const socket = useSocket();
 
   useEffect(() => {
     const carregarConversa = async () => {
@@ -20,6 +19,10 @@ export default function Chat() {
     };
 
     carregarConversa();
+  }, [id]);
+
+  useEffect(() => {
+    if (!socket) return;
 
     socket.on('mensagem', (msg) => {
       if (msg.conversation.id === id) {
@@ -30,7 +33,7 @@ export default function Chat() {
     return () => {
       socket.off('mensagem');
     };
-  }, [id]);
+  }, [socket, id]);
 
   useEffect(() => {
     chatRef.current?.scrollIntoView({ behavior: 'smooth' });

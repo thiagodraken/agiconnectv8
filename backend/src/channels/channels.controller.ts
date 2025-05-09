@@ -1,7 +1,22 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ChannelService } from './channels.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { TenantGuard } from '../auth/tenant.guard';
 
 @Controller('channels')
+@UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
+@Roles('admin')
 export class ChannelController {
   constructor(private readonly service: ChannelService) {}
 

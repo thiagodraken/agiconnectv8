@@ -1,5 +1,12 @@
-
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Tenant } from '../tenant/tenant.entity';
 
 @Entity()
 export class User {
@@ -12,8 +19,12 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'superadmin' })
-  role: string;
+  @Column({ default: 'admin' })
+  role: 'admin' | 'operador' | 'superadmin';
+
+  @ManyToOne(() => Tenant, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn()
+  tenant: Tenant;
 
   @CreateDateColumn()
   criado_em: Date;

@@ -1,7 +1,22 @@
-import { Controller, Get, Post, Param, Body, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  Patch,
+} from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { TenantGuard } from '../auth/tenant.guard';
 
 @Controller('conversations')
+@UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
+@Roles('admin')
 export class ConversationsController {
   constructor(private readonly service: ConversationsService) {}
 
@@ -25,16 +40,13 @@ export class ConversationsController {
     return this.service.create(data);
   }
 
+  @Patch(':id/atribuir')
+  atribuir(@Param('id') id: string, @Body('operadorId') operadorId: string) {
+    return this.service.atribuirOperador(id, operadorId);
+  }
+
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.service.delete(id);
-  }
-
-  @Patch(':id/atribuir')
-  atribuir(
-    @Param('id') id: string,
-    @Body('operadorId') operadorId: string,
-  ) {
-    return this.service.atribuirOperador(id, operadorId);
   }
 }

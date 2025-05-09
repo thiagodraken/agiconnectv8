@@ -5,12 +5,16 @@ import {
   Req,
   Get,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { WhatsappService } from './whatsapp.service';
 import { ConversationsService } from '../conversations/conversations.service';
 import { MessagesService } from '../messages/messages.service';
 import { ChatGateway } from '../chat/chat.gateway';
 import { Conversation } from '../conversations/conversation.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @Controller('whatsapp')
 export class WhatsappController {
@@ -27,11 +31,15 @@ export class WhatsappController {
     return this.service.enviarMensagem(accessToken, phoneNumberId, numeroDestino, mensagem);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post('config')
   async salvarConfig(@Body() data: any) {
     return this.service.salvarOuAtualizarConfig(data);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get('config/:tenantId')
   async buscarConfig(@Param('tenantId') tenantId: string) {
     return this.service.buscarConfigPorTenant(tenantId);

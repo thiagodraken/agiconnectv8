@@ -13,12 +13,8 @@ export default function AdminOperadores() {
   });
 
   const carregar = async () => {
-    try {
-      const res = await api.get(`/operators/tenant/${tenantId}`);
-      setOperadores(res.data);
-    } catch (err) {
-      console.error('Erro ao carregar operadores:', err);
-    }
+    const res = await api.get(`/operators/tenant/${tenantId}`);
+    setOperadores(res.data);
   };
 
   const handleSubmit = async (e) => {
@@ -31,17 +27,15 @@ export default function AdminOperadores() {
       setForm({ nome: '', email: '', senha: '', ativo: true });
       carregar();
     } catch (err) {
-      console.error('Erro ao criar operador:', err);
+      const msg = err.response?.data?.message || 'Erro ao criar operador';
+      alert(`❌ ${msg}`);
     }
   };
 
   const excluir = async (id) => {
-    if (!window.confirm('Excluir este operador?')) return;
-    try {
+    if (window.confirm('Excluir este operador?')) {
       await api.delete(`/operators/${id}`);
       carregar();
-    } catch (err) {
-      console.error('Erro ao excluir operador:', err);
     }
   };
 

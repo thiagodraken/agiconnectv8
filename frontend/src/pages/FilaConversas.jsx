@@ -2,14 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOperatorAuth } from '../contexts/OperatorAuthContext';
 import api from '../services/api';
-import { io } from 'socket.io-client';
-
-const socket = io('http://localhost:3000');
+import { useSocket } from '../hooks/useSocket';
 
 export default function FilaConversas() {
   const { tenantId, operatorId } = useOperatorAuth();
   const [conversas, setConversas] = useState([]);
   const navigate = useNavigate();
+  const socket = useSocket();
 
   useEffect(() => {
     const carregar = async () => {
@@ -17,10 +16,7 @@ export default function FilaConversas() {
         const res = await api.get(`/conversations/tenant/${tenantId}`);
         const ordenadas = res.data.map((conv) => {
           const ultimaMensagem = conv.mensagens?.slice(-1)[0] || null;
-          return {
-            ...conv,
-            ultimaMensagem,
-          };
+          return { ...conv, ultimaMensagem };
         });
         setConversas(ordenadas);
       } catch (err) {
@@ -32,10 +28,11 @@ export default function FilaConversas() {
   }, [tenantId]);
 
   useEffect(() => {
+    if (!socket) return;
+
     socket.on('mensagem', (msg) => {
       setConversas((prev) => {
         const index = prev.findIndex(c => c.id === msg.conversation.id);
-
         if (index >= 0) {
           const atualizada = [...prev];
           atualizada[index] = {
@@ -48,6 +45,7 @@ export default function FilaConversas() {
             {
               id: msg.conversation.id,
               cliente_nome: msg.conversation.cliente_nome || 'Novo Cliente',
+              operador: null,
               ultimaMensagem: msg,
             },
             ...prev,
@@ -59,36 +57,29 @@ export default function FilaConversas() {
     return () => {
       socket.off('mensagem');
     };
-  }, []);
+  }, [socket]);
 
   const atender = async (conversaId) => {
-    try {
-      await api.patch(`/conversations/${conversaId}/atribuir`, {
-        operadorId: operatorId,
-      });
-      navigate(`/operador/chat/${conversaId}`);
-    } catch (err) {
-      console.error('Erro ao atribuir operador:', err);
-    }
+    await api.patch(`/conversations/${conversaId}/atribuir`, {
+      operadorId: operatorId,
+    });
+    navigate(`/operador/chat/${conversaId}`);
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Fila de Atendimento</h1>
-
       <ul className="space-y-3">
         {conversas.map((conv) => (
-          <li key={conv.id} className="border rounded p-4 shadow-sm flex justify-between items-center bg-white">
+          <li key={conv.id} className="border rounded p-4 flex justify-between items-center bg-white">
             <div>
               <strong>{conv.cliente_nome}</strong>
               <p className="text-sm text-gray-600 mt-1">
-                Última mensagem: {conv.ultimaMensagem?.texto || 'Nenhuma'}{' '}
-                {conv.ultimaMensagem?.enviada_em && (
-                  <span className="text-xs text-gray-400 ml-2">
-                    ({new Date(conv.ultimaMensagem.enviada_em).toLocaleTimeString()})
-                  </span>
-                )}
+                Última: {conv.ultimaMensagem?.texto || '—'}
               </p>
+              {conv.operador?.nome && (
+                <p className="text-xs text-blue-600 mt-1">Atribuído a: {conv.operador.nome}</p>
+              )}
             </div>
             <button
               onClick={() => atender(conv.id)}

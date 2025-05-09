@@ -6,9 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard() {
   const [clientes, setClientes] = useState([]);
-  const [clienteSelecionado, setClienteSelecionado] = useState(null);
-  const [modalTipo, setModalTipo] = useState(null);
-  const [input, setInput] = useState('');
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -26,31 +23,41 @@ export default function Dashboard() {
     carregarClientes();
   }, []);
 
-  const abrirModal = (tipo, cliente) => {
-    setModalTipo(tipo);
-    setClienteSelecionado(cliente);
-    setInput(tipo === 'editar' ? cliente.nome_empresa : '');
-  };
+  const editarLimites = async (cliente) => {
+    const canais = prompt('Canais máximos:', cliente.canais_maximos);
+    const operadores = prompt('Operadores máximos:', cliente.operadores_maximos);
+    const disco = prompt('Espaço em disco (MB):', cliente.espaco_em_disco_mb);
+    const expiracao = prompt('Data de expiração (formato ISO ex: 2025-12-31T23:59):', cliente.expiracao?.slice(0, 16));
 
-  const fecharModal = () => {
-    setModalTipo(null);
-    setClienteSelecionado(null);
-    setInput('');
-  };
-
-  const confirmarAcao = async () => {
-    try {
-      if (modalTipo === 'editar') {
-        await api.put(`/tenants/${clienteSelecionado.id}`, { nome_empresa: input });
-      } else if (modalTipo === 'bloquear') {
-        await api.patch(`/tenants/${clienteSelecionado.id}/bloquear`, { motivo: input });
-      } else if (modalTipo === 'excluir') {
-        await api.delete(`/tenants/${clienteSelecionado.id}`);
-      }
+    if (canais && operadores && disco && expiracao) {
+      await api.put(`/tenants/${cliente.id}`, {
+        canais_maximos: parseInt(canais),
+        operadores_maximos: parseInt(operadores),
+        espaco_em_disco_mb: parseInt(disco),
+        expiracao,
+      });
       carregarClientes();
-      fecharModal();
-    } catch (err) {
-      console.error('Erro ao executar ação:', err);
+    }
+  };
+
+  const alterarSenha = async (cliente) => {
+    const novaSenha = prompt('Nova senha para o admin deste cliente:');
+    if (novaSenha) {
+      await api.patch(`/tenants/${cliente.id}/senha`, { novaSenha });
+    }
+  };
+
+  const bloquearCliente = async (cliente) => {
+    const motivo = prompt('Motivo do bloqueio:');
+    if (motivo) {
+      await api.patch(`/tenants/${cliente.id}/bloquear`, { motivo });
+    }
+  };
+
+  const excluirCliente = async (cliente) => {
+    if (window.confirm(`Tem certeza que deseja excluir o cliente "${cliente.nome_empresa}"?`)) {
+      await api.delete(`/tenants/${cliente.id}`);
+      carregarClientes();
     }
   };
 
@@ -78,35 +85,32 @@ export default function Dashboard() {
               <div>
                 <strong>{c.nome_empresa}</strong> — {c.status}
                 <div className="text-sm text-gray-500">{c.email_admin}</div>
+                <div className="text-xs text-gray-600 mt-1">
+                  Canais: {c.canais_maximos} | Operadores: {c.operadores_maximos} | Espaço: {c.espaco_em_disco_mb} MB | Expira: {c.expiracao?.slice(0, 10)}
+                </div>
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
                 <button
-                  onClick={() => navigate(`/clientes/${c.id}/canais`)}
-                  className="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
-                >
-                  Canais
-                </button>
-                <button
-                  onClick={() => navigate(`/clientes/${c.id}/operadores`)}
+                  onClick={() => editarLimites(c)}
                   className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                 >
-                  Operadores
+                  Editar Limites
                 </button>
                 <button
-                  onClick={() => abrirModal('editar', c)}
-                  className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => abrirModal('bloquear', c)}
+                  onClick={() => alterarSenha(c)}
                   className="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm"
+                >
+                  Alterar Senha
+                </button>
+                <button
+                  onClick={() => bloquearCliente(c)}
+                  className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm"
                 >
                   Bloquear
                 </button>
                 <button
-                  onClick={() => abrirModal('excluir', c)}
-                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                  onClick={() => excluirCliente(c)}
+                  className="px-3 py-1 bg-red-700 text-white rounded hover:bg-red-800 text-sm"
                 >
                   Excluir
                 </button>
@@ -115,52 +119,6 @@ export default function Dashboard() {
           </li>
         ))}
       </ul>
-
-      {modalTipo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 w-full max-w-md shadow-lg">
-            <h2 className="text-lg font-bold mb-4">
-              {modalTipo === 'editar'
-                ? 'Editar Nome da Empresa'
-                : modalTipo === 'bloquear'
-                ? 'Motivo do Bloqueio'
-                : 'Confirmar Exclusão'}
-            </h2>
-
-            {modalTipo !== 'excluir' && (
-              <input
-                className="w-full p-2 border rounded mb-4"
-                placeholder={modalTipo === 'editar' ? 'Novo nome' : 'Motivo'}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                autoFocus
-              />
-            )}
-
-            {modalTipo === 'excluir' && (
-              <p className="mb-4 text-red-600">
-                Tem certeza que deseja excluir o cliente <strong>{clienteSelecionado?.nome_empresa}</strong>?
-                Esta ação não pode ser desfeita.
-              </p>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={fecharModal}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmarAcao}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
