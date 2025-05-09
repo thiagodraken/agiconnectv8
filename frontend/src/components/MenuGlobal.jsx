@@ -1,4 +1,3 @@
-// 📁 frontend/src/components/MenuGlobal.jsx
 import { useAuth } from '../contexts/AuthContext';
 import { useAdminAuth } from '../contexts/AdminAuthContext';
 import { useOperatorAuth } from '../contexts/OperatorAuthContext';
@@ -38,9 +37,12 @@ export default function MenuGlobal() {
           <Link to="/operador/dashboard">Painel</Link> |{' '}
           <Link to="/chat">Chat</Link> |{' '}
           <Link to="/fila">Fila</Link> |{' '}
+          <Link to="/atendimento">Atendimento</Link> |{' '}
         </>
       )}
-      {(isAdmin || isSuper || isOperator) && <button onClick={logoutAll}>Sair</button>}
+      {(isAdmin || isSuper || isOperator) && (
+        <button onClick={logoutAll}>Sair</button>
+      )}
     </nav>
   );
 }

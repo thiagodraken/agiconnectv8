@@ -15,6 +15,10 @@ import { MessagesModule } from './messages/messages.module';
 import { ChatModule } from './chat/chat.module';
 import { SetupModule } from './setup/setup.module';
 import { AdminModule } from './admin/admin.module';
+import { FilaModule } from './fila/fila.module';
+import { ConversasModule } from './conversas/conversas.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
+
 
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
@@ -46,7 +50,10 @@ import { APP_GUARD } from '@nestjs/core';
      AdminModule, // ✅ novo módulo incluído
     MessagesModule,
     ChatModule,
+    FilaModule,
     SetupModule,
+    ConversasModule,
+     WebhooksModule,
   ],
   controllers: [AppController],
   providers: [

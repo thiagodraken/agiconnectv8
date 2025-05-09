@@ -3,7 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { WhatsappController } from './whatsapp.controller';
-import { WhatsappService } from './whatsapp.service';
+import { WhatsappService } from './WhatsappService';
 import { WhatsappConfig } from './whatsapp-config.entity';
 
 import { ConversationsModule } from '../conversations/conversations.module';

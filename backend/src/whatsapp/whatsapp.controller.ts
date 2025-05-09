@@ -7,7 +7,7 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { WhatsappService } from './whatsapp.service';
+import { WhatsappService } from './WhatsappService';
 import { ConversationsService } from '../conversations/conversations.service';
 import { MessagesService } from '../messages/messages.service';
 import { ChatGateway } from '../chat/chat.gateway';

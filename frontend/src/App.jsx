@@ -1,4 +1,3 @@
-// 📁 frontend/src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -13,6 +12,7 @@ import OperatorLogin from './pages/OperatorLogin';
 import OperatorDashboard from './pages/OperatorDashboard';
 import FilaConversas from './pages/FilaConversas';
 import Chat from './pages/Chat';
+import AtendimentoOperador from './pages/AtendimentoOperador';
 import MenuGlobal from './components/MenuGlobal';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -41,22 +41,6 @@ function MenuWrapper() {
   return !isLoginPage && <MenuGlobal />;
 }
 
-function LogoutRedirector() {
-  const { logout: logoutAdmin } = useAdminAuth();
-  const { logout: logoutOperador } = useOperatorAuth();
-  const { logout: logoutAuth } = useAuth();
-  const navigate = useNavigate();
-
-  const logoutAll = () => {
-    logoutAdmin();
-    logoutOperador();
-    logoutAuth();
-    navigate('/login');
-  };
-
-  return <button onClick={logoutAll}>Sair</button>;
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -83,6 +67,7 @@ function App() {
               <Route path="/operador/dashboard" element={<RotaProtegidaOperador><OperatorDashboard /></RotaProtegidaOperador>} />
               <Route path="/chat" element={<RotaProtegidaOperador><Chat /></RotaProtegidaOperador>} />
               <Route path="/fila" element={<RotaProtegidaOperador><FilaConversas /></RotaProtegidaOperador>} />
+              <Route path="/atendimento" element={<RotaProtegidaOperador><AtendimentoOperador /></RotaProtegidaOperador>} />
             </Routes>
           </OperatorAuthProvider>
         </AdminAuthProvider>
